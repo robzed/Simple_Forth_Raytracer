@@ -19,6 +19,13 @@ There is also test code for things to test the BMP image export.
 
 There is a simple 24-bit bitmap save `write_bmp`, which is called with the filename ( caddr len -- ) as parameters.
 
+## Higher Colour Version
+
+See `raytrace_colour.fth`.
+
+![raytrace_colour.fth output](raytrace_colour.bmp)
+
+
 ## License
 
 Conversion itself licensed under the MIT License - however since this is a direct conversion of the original code, the original license would apply as well.  
