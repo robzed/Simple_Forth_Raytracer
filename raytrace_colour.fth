@@ -21,8 +21,15 @@
 \
 
 decimal
-320 value screen_width 
-256 value screen_height
+
+\ you can adjust the screen size here - and it's scaled properly
+\ 320 value screen_width 
+\ 256 value screen_height
+\ e.g. 
+1024 value screen_width 
+820 value screen_height
+\ Scaling factor is set below (it's set as half the width at the moment)
+
 24 value bits_per_pixel
 3 value bytes_per_pixel
 
@@ -282,6 +289,10 @@ fvariable G
 : fsgn ( F: n -- -1|0|+1 ) fdup f0< f0> - s>f ;
 : 1/fsqrt1 ( F: x y -- result ) fdup f* fswap fdup f* f+ 1e f+ fsqrt 1/f ;
 
+screen_width 2/ s>f 0.5e f- fconstant screen_width_offset
+screen_height 2/ s>f 0.5e f- fconstant screen_height_offset
+screen_width 2/ s>f fconstant screen_scale
+
 : ray_trace_line ( screen_y -- ) ( F: screen_y -- )
     screen_width 0 do \ m in original code, x coords
         \ camera position (not hex, floats!)
@@ -290,8 +301,8 @@ fvariable G
         3e Z f!
 
         \ calculate the ray vector
-        I s>f 159.5e f- 160e f/ U f!    \ ray_x = (screen_x-159.5)/160
-        fdup 127.5e f- 160e f/ V f!     \ ray_y = (screen_y-127.5)/160
+        I s>f screen_width_offset f- screen_scale f/ U f!    \ ray_x = (screen_x-159.5)/160
+        fdup screen_height_offset f- screen_scale f/ V f!     \ ray_y = (screen_y-127.5)/160
         U f@ V f@ 1/fsqrt1 W f!         \ ray_z = 1/sqrt(x^2+y^2+1)
         \ normalise the ray vector
         U f@ W f@ f* U f! \ U=U*W
