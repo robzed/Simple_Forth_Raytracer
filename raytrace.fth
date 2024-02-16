@@ -12,7 +12,7 @@
 \ fair use and/or covered by known in the art.  If you use the original code,
 \ then you need to get permission.
 \
-\ NOTE: BMP converter original code - so that is fully MIT licensed.
+\ NOTE: BMP converter is original code - so that is fully MIT licensed.
 \
 \ Originally found here https://github.com/robogeek42/agon_basic_mycode/blob/main/rtdemo/HowDoesItWork.md
 \ And here https://github.com/robogeek42/agon_basic_mycode/tree/main/rtdemo
