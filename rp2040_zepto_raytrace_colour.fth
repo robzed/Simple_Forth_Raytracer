@@ -26,40 +26,47 @@
 \   
 decimal
 
-\ you can adjust the screen size here - and it's scaled properly
-160 value screen_width 
-80 value screen_height
+\ same output size as the LCD display
+lcd_width constant screen_width 
+lcd_height constant screen_height
 \ Scaling factor is set below (it's set as half the width at the moment)
 
-24 value bits_per_pixel
-3 value bytes_per_pixel
+24 constant bits_per_pixel
+3 constant bytes_per_pixel
 
-\ image buffer
-create image_buffer screen_height screen_width * cells allot
+\ image buffer - make it match the 16 bit LCD screen
+lcd_buffer constant image_buffer
 
-: pixel_address ( x y -- addr )  screen_width * + cells image_buffer + ;
+: pixel_address ( x y -- addr )  screen_width * + 2* image_buffer + ;
 
 0 value plot_colour
 
 : fill_image_buffer ( rgb_colour -- ) screen_height 0 DO
     screen_width 0 DO
-        dup I J pixel_address !
+        dup I J pixel_address h!
     LOOP
 LOOP drop ;
 
-\ plot (0,0)=bottom left, (319,255)=top right
-: plot ( x y -- ) screen_height swap - 1- pixel_address plot_colour swap ! ;
+: byte_swap ( n -- n ) dup $FF and 8 << swap $FF00 and 8 >> or ;
 
-: set_blue_colour ( n -- ) $FF and to plot_colour ;
-: set_green_colour ( n -- ) $FF and 8 lshift to plot_colour ;
-: set_cyan_colour ( n -- ) $FF and dup 8 lshift + to plot_colour ;
+\ plot (0,0)=bottom left, (319,255)=top right
+: plot ( x y -- ) screen_height swap - 1- pixel_address plot_colour byte_swap swap h! ;
+
+\ lcd has 5 bit red, 6 bit green, 5 bit blue. 
+\ The LCD itself is byte reversed so it's 0bGGGBBBBB RRRRRGGG where those lowest green are the MSBits
+\ The buffer we make 0bRRRRRGGG GGGBBBBB
+\ so we need to convert 8 bit to 5/6 bit
+: set_blue_colour ( n -- ) $F8 and 3 >> to plot_colour ;
+: set_green_colour ( n -- ) $FC and 3 << to plot_colour ;
+: set_red_colour ( n -- ) $F8 and 8 << to plot_colour ;
+: set_cyan_colour ( n -- ) $F8 and dup 3 << swap 3 >> + to plot_colour ;
 : set_white_cyan_blue_colour ( n -- ) 
     dup 128 >= if
-        \ from cyan to white
-        128 - 2* 16 lshift $00FFFF + 
+        \ from cyan to white  ( add red )
+        128 - 2* $F8 and 8 << $07FF + 
     else
-        \ from blue to cyan
-        2* 8 lshift $0000FF +
+        \ from blue to cyan ( add green )
+        2* $FC and 3 << $001F +
     then
     to plot_colour
 ;
@@ -112,16 +119,16 @@ fvariable W
         s>f 2,0 f/ 0,1 f+ v f@ fnegate f* 0,2 f+ v f!
         \ B=B+3*SQR V
         \ V is used here to be floor gradient, sqrt is gradual shortening 
-        V f@ fsqrt 250,0 f* 
+        V f@ fsqrt 250,0 f* \ ." green=" fdup f. 
         f>s set_green_colour
     else
         \ V is used here to be sky gradient, sqrt is gradual shortening 
-        V f@ fsqrt 256,0 f* 
+        \ V F@ ." V=" fdup f.
+        V f@ fsqrt 256,0 f* \ ." white-cyan-blue=" fdup f. 
         f>s 256 swap - set_white_cyan_blue_colour
         \ maybe we should have more contrast in the sky?
         
     then
-    
 ;
 
 
@@ -214,6 +221,7 @@ screen_width 2/ s>f 0,5 f- fconstant screen_width_offset
 screen_height 2/ s>f 0,5 f- fconstant screen_height_offset
 screen_width 2/ s>f fconstant screen_scale
 
+
 : ray_trace_line ( screen_y -- ) ( F: screen_y -- )
     screen_width 0 do \ m in original code, x coords
         \ camera position (not hex, floats!)
@@ -224,7 +232,9 @@ screen_width 2/ s>f fconstant screen_scale
         \ calculate the ray vector
         I s>f screen_width_offset f- screen_scale f/ U f!    \ ray_x = (screen_x-159.5)/160
         fdup screen_height_offset f- screen_scale f/ V f!     \ ray_y = (screen_y-127.5)/160
+    
         U f@ V f@ 1/fsqrt1 W f!         \ ray_z = 1/sqrt(x^2+y^2+1)
+    
         \ normalise the ray vector
         U f@ W f@ f* U f! \ U=U*W
         V f@ W f@ f* V f! \ V=V*W
@@ -243,16 +253,21 @@ screen_width 2/ s>f fconstant screen_scale
 
 : ray_trace_all ( -- )
     screen_height 0 do \ n in original code
-        ." Line = " I . CR
+        \ ." Line = " I . CR
         I s>f I ray_trace_line
+        lcd.display
         \ unloop exit
     loop
 ;
 
+
+systick import 
 : main
     systick-counter 
     CR ." Ray trace" CR
-    $000080 fill_image_buffer
+    RED fill_image_buffer
+    lcd.init
+    lcd.display
     ray_trace_all
     ." Done - took" systick-counter swap - 10000 / . ." seconds" CR
 ;
