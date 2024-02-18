@@ -43,4 +43,4 @@
 : f0> [inlined] 0,0 d> ;
 : fover [inlined] 2over ;
 : fsqrt [inlined] sqrt ;
-: 1/f [inlined] 1e0 f/ ;
+: 1/f [inlined] 1,0 fswap f/ ;
