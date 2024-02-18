@@ -23,7 +23,7 @@
 \   - gForth floats are like 1e0 and 0e and -0.1e10, whereas Zeptforth floats are like 1, and 1,2 and 10,1234
 \   - gForth float support, Zeptoforth has S31.32 fixed point support. (There is 
 \     also a S15.16 in Zeptoforth - need to check if it's good enough, and what the speed improvement will be.)
-\   
+\   - There is only one data stack on Zeptoforth - but there is a seperate float stack on gForth
 decimal
 
 \ same output size as the LCD display
@@ -214,7 +214,7 @@ fvariable G
 
 
 \ Sign of a float: -1 for negative number, 0 for zero, +1 for positive number
-: fsgn ( F: n -- -1|0|+1 ) fdup f0< f0> - s>f ;
+: fsgn ( F: n -- -1|0|+1 ) fdup f0< -rot f0> - s>f ;
 : 1/fsqrt1 ( F: x y -- result ) fdup f* fswap fdup f* f+ 1,0 f+ fsqrt 1/f ;
 
 screen_width 2/ s>f 0,5 f- fconstant screen_width_offset
@@ -222,7 +222,7 @@ screen_height 2/ s>f 0,5 f- fconstant screen_height_offset
 screen_width 2/ s>f fconstant screen_scale
 
 
-: ray_trace_line ( screen_y -- ) ( F: screen_y -- )
+: ray_trace_line ( screen_y -- )
     screen_width 0 do \ m in original code, x coords
         \ camera position (not hex, floats!)
         0,0 X f!
@@ -231,7 +231,7 @@ screen_width 2/ s>f fconstant screen_scale
 
         \ calculate the ray vector
         I s>f screen_width_offset f- screen_scale f/ U f!    \ ray_x = (screen_x-159.5)/160
-        fdup screen_height_offset f- screen_scale f/ V f!     \ ray_y = (screen_y-127.5)/160
+        dup s>f screen_height_offset f- screen_scale f/ V f!     \ ray_y = (screen_y-127.5)/160
     
         U f@ V f@ 1/fsqrt1 W f!         \ ray_z = 1/sqrt(x^2+y^2+1)
     
@@ -248,13 +248,13 @@ screen_width 2/ s>f fconstant screen_scale
         I over PLOT    \ original was 4*M,4*N because virtual coords
     loop
     \ drop both copies of the screen_y coordinate
-    drop fdrop
+    drop
 ;
 
 : ray_trace_all ( -- )
     screen_height 0 do \ n in original code
         \ ." Line = " I . CR
-        I s>f I ray_trace_line
+        I ray_trace_line
         lcd.display
         \ unloop exit
     loop
