@@ -269,7 +269,7 @@ systick import
     lcd.init
     lcd.display
     ray_trace_all
-    ." Done - took" systick-counter swap - 10000 / . ." seconds" CR
+    ." Done - took " systick-counter swap - s>f 10000,0 f/ f. ." seconds" CR
 ;
 
 
