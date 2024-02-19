@@ -36,14 +36,13 @@ These are the command you need to run from Zeptocom:
 ```
 compile-to-flash
 #include lcd_v2_zepto.fth
-#include float_compatibilityS31-32.fth
+#include float_compatibility.fth
 compile-to-ram
 reboot
 #include rp2040_zepto_raytrace_colour.fth
 ```
 
-You can replace `#include float_compatibilityS31-32.fth` with 
-`#include float_compatibilityS15-16.fth` for the faster version. 
+
 
 
 ### Alternate Version for RP2040-LCD-0.96
