@@ -25,6 +25,37 @@ See `raytrace_colour.fth`.
 
 ![raytrace_colour.fth output](raytrace_colour.bmp)
 
+## RP2040 (Raspberry Pi Pico) version targetting Waveshare RP2040-LCD-0.96
+
+Using Zeptoforth this small board also can do ray tracing!
+
+I think it takes about 21 seconds for an RP2040 using S31.32 fixed point to a 160x80 target.  
+
+These are the command you need to run from Zeptocom:
+
+```
+compile-to-flash
+#include lcd_v2_zepto.fth
+#include float_compatibilityS31-32.fth
+compile-to-ram
+reboot
+#include rp2040_zepto_raytrace_colour.fth
+```
+
+You can replace `#include float_compatibilityS31-32.fth` with 
+`#include float_compatibilityS15-16.fth` for the faster version. 
+
+
+### Alternate Version for RP2040-LCD-0.96
+
+Travis Bemann (author of Zeptoforth) also has ported this ray tracer to the same target. 
+
+You can find this here https://github.com/tabemann/zeptoforth/blob/master/test/rp2040/raytracing_fun.fs and also a 
+modified version that uses  S15.16 numbers here https://github.com/tabemann/zeptoforth/blob/master/test/rp2040/raytracing_fun_f32.fs
+which runs faster. The S31.32 version is about 6.0 seconds and the S15.16 version is about 3.98 seconds.
+
+Travis's version also uses local variables, which maybe makes the code more readable? You decide :-)
+
 
 ## License
 
