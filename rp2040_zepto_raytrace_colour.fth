@@ -106,8 +106,8 @@ fvariable W
         Y f@ 2,0 f+ v f@ f/ \ P=(Y+2)/V ( -- 'P' ) Previous 'P' is on stack
         \ checkerboard pattern
         \ (INT(X-U*P)+INT(Z-W*P)AND1
-        X f@ fover U f@ f* f- f>s
-        Z f@ fswap W f@ f* f- f>s
+        X f@ fover U f@ f* f- f>s >r
+        Z f@ fswap W f@ f* f- f>s r>
         + 1 and
 
         \ Could add different colours here for alternate squares of the floor
